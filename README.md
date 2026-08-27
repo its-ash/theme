@@ -4,6 +4,8 @@ Shared Flutter theming and component library: one `ThemeData` (light + dark), co
 
 See **[COMPONENTS.md](COMPONENTS.md)** for the full component reference — every exported widget, its constructor, and a usage snippet.
 
+**[Live demo →](https://ashvinijangid.github.io/theme/)** — the `example` app compiled to web and hosted on GitHub Pages.
+
 ## Install
 
 This package isn't published to pub.dev — pull it in as a git dependency.
@@ -64,7 +66,7 @@ Full list with signatures: **[COMPONENTS.md](COMPONENTS.md)**.
 
 ## Explore the components
 
-The `example/` app is a running showcase — it bundles several demo apps (an e-commerce app, a blog, an astrology app) all built entirely from this package's components.
+The `example/` app is a running showcase — it bundles several demo apps (an e-commerce app, a blog, an astrology app) all built entirely from this package's components. Try it live at the [demo link above](https://ashvinijangid.github.io/theme/), or run it locally:
 
 ```bash
 cd example
@@ -74,9 +76,22 @@ flutter run
 Or use the Makefile from the repo root:
 
 ```bash
-make run     # flutter run for the example app
-make deploy  # build + deploy
+make run     # flutter run for the example app (iOS simulator)
+make docs    # rebuild the web demo into docs/ for GitHub Pages
+make deploy  # alias for `make docs`
+make commit  # stage + commit with an AI-generated message
 ```
+
+### Updating the live demo
+
+The `docs/` folder is a committed, prebuilt `flutter build web` output — GitHub Pages serves it directly, no CI build step. After changing any component or the example app, rebuild and commit it:
+
+```bash
+make docs
+git add docs && git commit -m "docs: rebuild web demo"
+```
+
+GitHub Pages is configured to serve from the `docs/` folder on `main` (Settings → Pages → Source: Deploy from a branch → `main` / `docs`).
 
 ## Contributing
 
