@@ -1,0 +1,21 @@
+name: theme
+description: "Flutter theme package: shared ThemeData, colors, typography, and a ThemeX component library."
+version: 0.0.1
+homepage: https://github.com/ashvinijangid/theme
+repository: https://github.com/ashvinijangid/theme
+
+environment:
+  sdk: ^3.0.0
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  google_fonts: ^8.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
