@@ -4,7 +4,7 @@ Shared Flutter theming and component library: one `ThemeData` (light + dark), co
 
 See **[COMPONENTS.md](COMPONENTS.md)** for the full component reference — every exported widget, its constructor, and a usage snippet.
 
-**[Live demo →](https://its-ash.github.io/theme/)** — the `example` app compiled to web and hosted on GitHub Pages.
+**[Live demo →](https://flutter.itsash.in)** — the `example` app compiled to web and hosted on GitHub Pages.
 
 ## Install
 
@@ -92,7 +92,7 @@ make deploy
 
 This rebuilds `docs/` from `example/`, stages everything, asks the GitHub Copilot CLI (`gh copilot -p ...`) for a commit message covering the change, commits, and pushes to `main`. Requires the [GitHub CLI](https://cli.github.com) authenticated via `gh auth login` (the `gh copilot` command downloads the Copilot CLI on first use).
 
-GitHub Pages is configured to serve from the `docs/` folder on `main` (Settings → Pages → Source: Deploy from a branch → `main` / `docs`).
+GitHub Pages is configured to serve from the `docs/` folder on `main` (Settings → Pages → Source: Deploy from a branch → `main` / `docs`), with a custom domain at `flutter.itsash.in` via `docs/CNAME`. That file is preserved across rebuilds — `make docs` clears everything in `docs/` except `CNAME` before copying in the new build, so the custom domain never needs to be reconfigured in GitHub Pages settings.
 
 ## Contributing
 

@@ -12,9 +12,8 @@ deploy: docs commit
 	git push
 
 docs:
-	cd example && flutter pub get && flutter build web --base-href /theme/ --release
-	rm -rf docs
-	mkdir docs
+	cd example && flutter pub get && flutter build web --base-href / --release
+	find docs -mindepth 1 -not -name CNAME -delete
 	cp -R example/build/web/. docs/
 	touch docs/.nojekyll
 

@@ -14,7 +14,7 @@
     This is a placeholder for base href that will be replaced by the value of
     the `--base-href` argument provided to `flutter build`.
   -->
-  <base href="/theme/">
+  <base href="/">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
@@ -31,6 +31,42 @@
 
   <title>theme — component showcase</title>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: #1b1b1f;
+    }
+
+    /*
+      This app is a phone-shaped UI (shopping/blog/astrology demos), so on a
+      wide desktop viewport it's framed like a phone instead of stretching
+      full-bleed. Flutter web mounts its canvas/glass-pane as a direct child
+      of <body>, so the frame is applied to body itself. Below the frame's
+      own breakpoint it fills the viewport as normal, so real phones/tablets
+      still get the full-screen experience.
+    */
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    @media (min-width: 900px) and (min-height: 780px) {
+      body {
+        width: 412px;
+        height: 900px;
+        max-height: 92vh;
+        margin: auto;
+        border-radius: 40px;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+        border: 10px solid #111;
+        background: #fff;
+      }
+    }
+  </style>
 </head>
 <body>
   <!--
