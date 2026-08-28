@@ -36,14 +36,6 @@ class ThemeImageViewer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final image = InteractiveViewer(
-      minScale: minScale,
-      maxScale: maxScale,
-      child: Center(
-        child: ThemeLazyImage(src: src, fit: BoxFit.contain, borderRadius: 0),
-      ),
-    );
-
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -51,9 +43,31 @@ class ThemeImageViewer extends StatelessWidget {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: GestureDetector(
-        onTap: () => Navigator.of(context).maybePop(),
-        child: heroTag != null ? Hero(tag: heroTag!, child: image) : image,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          // ThemeLazyImage sizes itself from width/height rather than
+          // filling its parent, so it needs the viewport's own bounds
+          // explicitly — otherwise it collapses to a tiny box that
+          // InteractiveViewer/Center just anchor top-left.
+          final image = InteractiveViewer(
+            minScale: minScale,
+            maxScale: maxScale,
+            child: Center(
+              child: ThemeLazyImage(
+                src: src,
+                fit: BoxFit.contain,
+                borderRadius: 0,
+                width: constraints.maxWidth,
+                height: constraints.maxHeight,
+              ),
+            ),
+          );
+
+          return GestureDetector(
+            onTap: () => Navigator.of(context).maybePop(),
+            child: heroTag != null ? Hero(tag: heroTag!, child: image) : image,
+          );
+        },
       ),
     );
   }

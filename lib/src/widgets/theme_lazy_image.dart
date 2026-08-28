@@ -48,11 +48,15 @@ class _ThemeLazyImageState extends State<ThemeLazyImage>
 
   ImageProvider _provider() {
     final s = widget.src;
-    if (s is String) {
-      if (s.startsWith('http')) return NetworkImage(s);
-      return AssetImage(s);
-    }
-    return MemoryImage(s as Uint8List);
+    final base = switch (s) {
+      String() when s.startsWith('http') => NetworkImage(s),
+      String() => AssetImage(s) as ImageProvider,
+      _ => MemoryImage(s as Uint8List),
+    };
+    // ResizeImage asserts at least one dimension is set — only wrap when the
+    // caller actually opted into cache-size downscaling.
+    if (widget.cacheWidth == null && widget.cacheHeight == null) return base;
+    return ResizeImage(base, width: widget.cacheWidth, height: widget.cacheHeight);
   }
 
   @override
@@ -91,11 +95,7 @@ class _ThemeLazyImageState extends State<ThemeLazyImage>
             FadeTransition(
               opacity: _fade,
               child: Image(
-                image: ResizeImage(
-                  _provider(),
-                  width: widget.cacheWidth,
-                  height: widget.cacheHeight,
-                ),
+                image: _provider(),
                 width: widget.width,
                 height: widget.height,
                 fit: widget.fit,

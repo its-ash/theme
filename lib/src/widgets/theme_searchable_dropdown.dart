@@ -39,8 +39,9 @@ class _ThemeSearchableDropdownState<T> extends State<ThemeSearchableDropdown<T>>
 
   @override
   void dispose() {
+    _entry?.remove();
+    _entry = null;
     _searchCtrl.dispose();
-    _close();
     super.dispose();
   }
 

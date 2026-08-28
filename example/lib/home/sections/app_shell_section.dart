@@ -146,7 +146,6 @@ class _AppShellSectionState extends State<AppShellSection> {
         ShowcaseTile(
           title: 'ThemeFileUploader',
           child: ThemeFileUploader(
-            type: FileType.any,
             onFilesPicked: (_) {},
           ),
         ),

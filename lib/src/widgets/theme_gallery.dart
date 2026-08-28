@@ -99,12 +99,26 @@ class _ThemeGalleryPagerState extends State<_ThemeGalleryPager> {
         itemBuilder: (context, i) {
           return Hero(
             tag: '${widget.tagPrefix}-$i',
-            child: InteractiveViewer(
-              minScale: 1,
-              maxScale: 4,
-              child: Center(
-                child: ThemeLazyImage(src: widget.sources[i], fit: BoxFit.contain, borderRadius: 0),
-              ),
+            // ThemeLazyImage sizes itself from width/height rather than
+            // filling its parent, so it needs the page's own bounds
+            // explicitly — otherwise it collapses to a tiny box that
+            // InteractiveViewer/Center just anchor top-left.
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return InteractiveViewer(
+                  minScale: 1,
+                  maxScale: 4,
+                  child: Center(
+                    child: ThemeLazyImage(
+                      src: widget.sources[i],
+                      fit: BoxFit.contain,
+                      borderRadius: 0,
+                      width: constraints.maxWidth,
+                      height: constraints.maxHeight,
+                    ),
+                  ),
+                );
+              },
             ),
           );
         },

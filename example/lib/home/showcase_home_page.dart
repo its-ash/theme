@@ -2,14 +2,17 @@ import 'package:flutter/material.dart';
 
 import 'package:theme/theme.dart';
 import 'section_data.dart';
+import 'sections/app_shell_section.dart';
 import 'sections/buttons_section.dart';
 import 'sections/cards_section.dart';
 import 'sections/commerce_section.dart';
 import 'sections/feedback_section.dart';
 import 'sections/forms_section.dart';
+import 'sections/home_section.dart';
 import 'sections/inputs_section.dart';
 import 'sections/layout_section.dart';
 import 'sections/lists_section.dart';
+import 'sections/media_section.dart';
 import 'sections/navigation_section.dart';
 import 'sections/pickers_section.dart';
 import 'sections/states_section.dart';
@@ -30,6 +33,7 @@ class _ShowcaseHomePageState extends State<ShowcaseHomePage> {
   int _selectedIndex = 0;
 
   List<ShowcaseSection> get _sections => [
+    ShowcaseSection(label: 'Home', icon: Icons.home_outlined, builder: _home),
     ShowcaseSection(label: 'Theme styles', icon: Icons.palette_outlined, builder: (context) => ThemeStylesSection(controller: widget.themeController)),
     ShowcaseSection(label: 'Buttons', icon: Icons.smart_button_outlined, builder: _buttons),
     ShowcaseSection(label: 'Cards & surfaces', icon: Icons.crop_square_outlined, builder: _cards),
@@ -43,8 +47,11 @@ class _ShowcaseHomePageState extends State<ShowcaseHomePage> {
     ShowcaseSection(label: 'E-commerce widgets', icon: Icons.shopping_bag_outlined, builder: _commerce),
     ShowcaseSection(label: 'State & status', icon: Icons.hourglass_empty_outlined, builder: _states),
     ShowcaseSection(label: 'Form helpers', icon: Icons.edit_note_outlined, builder: _forms),
+    ShowcaseSection(label: 'Media & content', icon: Icons.perm_media_outlined, builder: _media),
+    ShowcaseSection(label: 'App shell & pickers', icon: Icons.widgets_outlined, builder: _appShell),
   ];
 
+  static Widget _home(BuildContext _) => const HomeSection();
   static Widget _buttons(BuildContext _) => const ButtonsSection();
   static Widget _cards(BuildContext _) => const CardsSection();
   static Widget _feedback(BuildContext _) => const FeedbackSection();
@@ -57,6 +64,8 @@ class _ShowcaseHomePageState extends State<ShowcaseHomePage> {
   static Widget _commerce(BuildContext _) => const CommerceSection();
   static Widget _states(BuildContext _) => const StatesSection();
   static Widget _forms(BuildContext _) => const FormsSection();
+  static Widget _media(BuildContext _) => const MediaSection();
+  static Widget _appShell(BuildContext _) => const AppShellSection();
 
   void _select(int index) => setState(() => _selectedIndex = index);
 
@@ -75,14 +84,21 @@ class _ShowcaseHomePageState extends State<ShowcaseHomePage> {
         ),
         body: Row(
           children: [
-            NavigationRail(
-              selectedIndex: _selectedIndex,
-              onDestinationSelected: _select,
-              labelType: NavigationRailLabelType.all,
-              destinations: [
-                for (final s in _sections)
-                  NavigationRailDestination(icon: Icon(s.icon), label: Text(s.label)),
-              ],
+            SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: MediaQuery.sizeOf(context).height),
+                child: IntrinsicHeight(
+                  child: NavigationRail(
+                    selectedIndex: _selectedIndex,
+                    onDestinationSelected: _select,
+                    labelType: NavigationRailLabelType.all,
+                    destinations: [
+                      for (final s in _sections)
+                        NavigationRailDestination(icon: Icon(s.icon), label: Text(s.label)),
+                    ],
+                  ),
+                ),
+              ),
             ),
             const VerticalDivider(width: 1),
             Expanded(child: content),
