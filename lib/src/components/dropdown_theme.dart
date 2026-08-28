@@ -8,7 +8,7 @@ class AppDropdownTheme {
   static const double menuElevation = 8;
 
   static TextStyle textStyle(ColorScheme scheme) =>
-      TextStyle(color: scheme.onSurface, fontSize: 16);
+      TextStyle(color: scheme.onSurface, fontSize: 14);
 
   static InputDecorationTheme inputDecorationTheme(ColorScheme scheme) =>
       InputDecorationTheme(
@@ -31,7 +31,8 @@ class AppDropdownTheme {
         ),
         filled: true,
         fillColor: Colors.transparent,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       );
 
   static MenuStyle menuStyle(Color backgroundColor, AppShadowTheme shadows) {
@@ -49,6 +50,9 @@ class AppDropdownTheme {
       DropdownMenuThemeData(
         textStyle: textStyle(scheme),
         inputDecorationTheme: inputDecorationTheme(scheme),
-        menuStyle: menuStyle(scheme.surface, shadows),
+        menuStyle: menuStyle(
+          scheme.brightness == Brightness.dark ? scheme.surfaceContainerHigh : scheme.surface,
+          shadows,
+        ),
       );
 }

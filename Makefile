@@ -1,12 +1,18 @@
 DEVICE := iPhone 17
 
-.PHONY: run deploy docs commit
+.PHONY: run run-macos build-macos deploy docs commit
 
 run:
 	xcrun simctl boot "$(DEVICE)" 2>/dev/null || true
 	open -a Simulator
 	until xcrun simctl list devices booted | grep -q "$(DEVICE)"; do sleep 1; done
 	cd example && flutter pub get && flutter run -d "$(DEVICE)"
+
+run-macos:
+	cd example && flutter pub get && flutter run -d macos
+
+build-macos:
+	cd example && flutter pub get && flutter build macos --release
 
 deploy: docs commit
 	git push

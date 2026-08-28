@@ -46,7 +46,7 @@ class AppTheme {
   static ThemeData darkTheme({
     ColorScheme? colorScheme,
     TextTheme? textTheme,
-    AppShadowTheme shadows = const AppShadowTheme(),
+    AppShadowTheme shadows = const AppShadowTheme.dark(),
   }) => _theme(
     brightness: Brightness.dark,
     scheme: colorScheme ?? AppColors.darkColorScheme,
@@ -113,7 +113,7 @@ class AppTheme {
       bottomNavigationBarTheme: AppNavigationTheme.bottomNavigationBarTheme(scheme),
       bottomSheetTheme: AppMiscTheme.bottomSheetTheme(scheme, shadows),
       buttonTheme: AppMiscTheme.buttonTheme(scheme),
-      cardTheme: AppCardTheme.theme(shadows),
+      cardTheme: AppCardTheme.theme(scheme, shadows),
       carouselViewTheme: AppMiscTheme.carouselViewTheme(scheme),
       checkboxTheme: AppSelectionThemes.checkboxTheme(scheme),
       chipTheme: AppChipTheme.theme(scheme, textTheme),

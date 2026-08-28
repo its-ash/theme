@@ -63,3 +63,61 @@ export 'src/widgets/notify.dart';
 export 'src/widgets/price_tag.dart';
 export 'src/widgets/profile_avatar.dart';
 export 'src/widgets/rating_stars.dart';
+export 'src/widgets/theme_confirm_dialog.dart';
+export 'src/widgets/theme_countdown_timer.dart';
+export 'src/widgets/theme_empty_state.dart';
+export 'src/widgets/theme_error_state.dart';
+export 'src/widgets/theme_labeled_field.dart';
+export 'src/widgets/theme_otp_field.dart';
+export 'src/widgets/theme_password_field.dart';
+export 'src/widgets/theme_shimmer.dart';
+export 'src/widgets/theme_stat_card.dart';
+export 'src/widgets/theme_status_pill.dart';
+export 'src/widgets/theme_stepper.dart';
+
+// New widgets
+export 'src/widgets/theme_lazy_image.dart';
+export 'src/widgets/theme_spinner.dart';
+export 'src/widgets/theme_skeleton.dart';
+export 'src/widgets/theme_searchable_dropdown.dart';
+export 'src/widgets/theme_otp_input.dart';
+export 'src/widgets/theme_app_password_field.dart';
+export 'src/widgets/theme_accordion.dart';
+export 'src/widgets/theme_pull_to_refresh.dart';
+export 'src/widgets/theme_draggable_list.dart';
+export 'src/widgets/theme_app_data_table.dart';
+export 'src/widgets/theme_app_confirm_dialog.dart';
+export 'src/widgets/theme_notification_card.dart';
+export 'src/widgets/theme_push_notification.dart';
+export 'src/widgets/theme_command_palette.dart';
+export 'src/widgets/theme_style_switcher.dart';
+
+// Media & content widgets
+export 'src/widgets/theme_image_viewer.dart';
+export 'src/widgets/theme_gallery.dart';
+export 'src/widgets/theme_video_player.dart';
+export 'src/widgets/theme_markdown.dart';
+export 'src/widgets/theme_code_block.dart';
+export 'src/widgets/theme_expandable_text.dart';
+
+// App-shell / status pages
+export 'src/widgets/theme_splash_screen.dart';
+export 'src/widgets/theme_error_page.dart';
+export 'src/widgets/theme_app_dialog.dart';
+
+// Pickers
+export 'src/widgets/theme_icon_picker.dart';
+export 'src/widgets/theme_emoji_picker.dart';
+export 'src/widgets/theme_color_picker.dart';
+export 'src/widgets/theme_file_uploader.dart';
+
+// Commerce & access
+export 'src/widgets/theme_discount_badge.dart';
+export 'src/widgets/theme_wishlist_button.dart';
+export 'src/widgets/theme_permission_selector.dart';
+
+// Theme presets
+export 'src/theme_presets/app_theme_preset.dart';
+export 'src/theme_presets/light_presets.dart';
+export 'src/theme_presets/dark_presets.dart';
+export 'src/theme_presets/app_theme_style.dart';

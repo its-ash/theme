@@ -64,21 +64,28 @@ class AppMiscTheme {
         selectionHandleColor: scheme.primary,
       );
 
-  static DataTableThemeData dataTableTheme(ColorScheme scheme, TextTheme textTheme) =>
-      DataTableThemeData(
-        headingRowColor: WidgetStatePropertyAll(
-          Color.alphaBlend(scheme.onSurface.withValues(alpha: 0.04), scheme.surface),
-        ),
-        headingTextStyle: (textTheme.labelLarge ?? const TextStyle()).copyWith(
-          color: scheme.onSurface,
-        ),
-        dataTextStyle: (textTheme.bodyMedium ?? const TextStyle()).copyWith(
-          color: scheme.onSurface,
-        ),
-        dividerThickness: 1,
-        dataRowMinHeight: 48,
-        dataRowMaxHeight: 56,
-      );
+  static DataTableThemeData dataTableTheme(ColorScheme scheme, TextTheme textTheme) {
+    return DataTableThemeData(
+      headingRowColor: WidgetStatePropertyAll(
+        Color.alphaBlend(scheme.onSurface.withValues(alpha: 0.08), scheme.surface),
+      ),
+      dataRowColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return scheme.primary.withValues(alpha: 0.12);
+        }
+        return Colors.transparent;
+      }),
+      dataRowMinHeight: 48,
+      dataRowMaxHeight: 56,
+      headingTextStyle: (textTheme.labelLarge ?? const TextStyle()).copyWith(
+        color: scheme.onSurface,
+      ),
+      dataTextStyle: (textTheme.bodyMedium ?? const TextStyle()).copyWith(
+        color: scheme.onSurface,
+      ),
+      dividerThickness: 1,
+    );
+  }
 
   static CarouselViewThemeData carouselViewTheme(ColorScheme scheme) => CarouselViewThemeData(
     backgroundColor: scheme.surface,

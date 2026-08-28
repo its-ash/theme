@@ -11,7 +11,7 @@ class AppChipTheme {
     selectedColor: scheme.primary.withValues(alpha: 0.16),
     disabledColor: scheme.onSurface.withValues(alpha: 0.12),
     deleteIconColor: scheme.onSurface.withValues(alpha: 0.6),
-    checkmarkColor: scheme.onPrimary,
+    checkmarkColor: scheme.primary,
     labelStyle: (textTheme.bodyMedium ?? const TextStyle()).copyWith(
       color: scheme.onSurface,
       fontSize: 12,

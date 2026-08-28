@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:theme/src/shadows/app_shadow_theme.dart';
+
 enum ThemeButtonVariant { elevated, filled, outlined, text }
 
 class ThemeButton extends StatelessWidget {
@@ -18,21 +20,48 @@ class ThemeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final shadows = theme.extension<AppShadowTheme>() ?? const AppShadowTheme();
+    final hasCustomShadow = shadows.buttonShadow.isNotEmpty;
     final child = Text(label);
-    return switch (variant) {
-      ThemeButtonVariant.elevated => icon == null
+    final iconWidget = icon == null ? null : Icon(icon);
+
+    Widget button = switch (variant) {
+      ThemeButtonVariant.elevated => iconWidget == null
           ? ElevatedButton(onPressed: onPressed, child: child)
-          : ElevatedButton.icon(onPressed: onPressed, icon: Icon(icon), label: child),
-      ThemeButtonVariant.filled => icon == null
+          : ElevatedButton.icon(onPressed: onPressed, icon: iconWidget, label: child),
+      ThemeButtonVariant.filled => iconWidget == null
           ? FilledButton(onPressed: onPressed, child: child)
-          : FilledButton.icon(onPressed: onPressed, icon: Icon(icon), label: child),
-      ThemeButtonVariant.outlined => icon == null
+          : FilledButton.icon(onPressed: onPressed, icon: iconWidget, label: child),
+      ThemeButtonVariant.outlined => iconWidget == null
           ? OutlinedButton(onPressed: onPressed, child: child)
-          : OutlinedButton.icon(onPressed: onPressed, icon: Icon(icon), label: child),
-      ThemeButtonVariant.text => icon == null
+          : OutlinedButton.icon(onPressed: onPressed, icon: iconWidget, label: child),
+      ThemeButtonVariant.text => iconWidget == null
           ? TextButton(onPressed: onPressed, child: child)
-          : TextButton.icon(onPressed: onPressed, icon: Icon(icon), label: child),
+          : TextButton.icon(onPressed: onPressed, icon: iconWidget, label: child),
     };
+
+    if (!hasCustomShadow || variant == ThemeButtonVariant.text) return button;
+
+    final radius = _buttonRadius(theme);
+    return Opacity(
+      opacity: onPressed == null ? 0.5 : 1,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(radius),
+          boxShadow: shadows.buttonShadow,
+        ),
+        child: button,
+      ),
+    );
+  }
+
+  double _buttonRadius(ThemeData theme) {
+    final shape = theme.filledButtonTheme.style?.shape?.resolve({});
+    if (shape is RoundedRectangleBorder) {
+      return shape.borderRadius.resolve(TextDirection.ltr).topLeft.x;
+    }
+    return 12;
   }
 }
 

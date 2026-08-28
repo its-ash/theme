@@ -7,32 +7,63 @@ class ThemeCard extends StatelessWidget {
     super.key,
     required this.child,
     this.color,
-    this.borderRadius = 16,
+    this.borderRadius,
     this.clipBehavior = Clip.antiAlias,
-    this.margin = const EdgeInsets.all(8),
+    this.margin,
+    this.selected = false,
+    this.selectedColor,
+    this.selectedBorderWidth = 2,
   });
 
   final Widget child;
   final Color? color;
-  final double borderRadius;
+  final double? borderRadius;
   final Clip clipBehavior;
-  final EdgeInsetsGeometry margin;
+  final EdgeInsetsGeometry? margin;
+
+  /// Draws a border in [selectedColor] (defaults to `colorScheme.primary`)
+  /// around the card, sharing this card's own resolved [borderRadius] so
+  /// the selection outline never mismatches the card's actual corners.
+  final bool selected;
+  final Color? selectedColor;
+  final double selectedBorderWidth;
 
   @override
   Widget build(BuildContext context) {
-    final shadows =
-        Theme.of(context).extension<AppShadowTheme>() ?? const AppShadowTheme();
-    final radius = BorderRadius.circular(borderRadius);
+    final theme = Theme.of(context);
+    final shadows = theme.extension<AppShadowTheme>() ?? const AppShadowTheme();
+
+    final cardTheme = theme.cardTheme;
+    final r = borderRadius ?? _radiusFromShape(cardTheme.shape) ?? 16;
+    final m = margin ?? (cardTheme.margin ?? const EdgeInsets.all(8));
+    final cardColor = color ?? cardTheme.color ?? theme.colorScheme.surface;
+    final radius = BorderRadius.circular(r);
 
     return Container(
-      margin: margin,
-      decoration: BoxDecoration(borderRadius: radius, boxShadow: shadows.cardShadow),
+      margin: m,
+      decoration: BoxDecoration(
+        borderRadius: radius,
+        boxShadow: shadows.cardShadow,
+        border: selected
+            ? Border.all(
+                color: selectedColor ?? theme.colorScheme.primary,
+                width: selectedBorderWidth,
+              )
+            : null,
+      ),
       child: Material(
-        color: color ?? Theme.of(context).colorScheme.surface,
+        color: cardColor,
         borderRadius: radius,
         clipBehavior: clipBehavior,
         child: child,
       ),
     );
+  }
+
+  double? _radiusFromShape(ShapeBorder? shape) {
+    if (shape is RoundedRectangleBorder) {
+      return shape.borderRadius.resolve(TextDirection.ltr).topLeft.x;
+    }
+    return null;
   }
 }

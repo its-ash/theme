@@ -38,6 +38,10 @@ class AppMenuTheme {
   static MenuButtonThemeData menuButtonTheme(ColorScheme scheme) => MenuButtonThemeData(
     style: ButtonStyle(
       foregroundColor: WidgetStatePropertyAll(scheme.onSurface),
+      padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+      minimumSize: const WidgetStatePropertyAll(Size(64, 40)),
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      visualDensity: VisualDensity.compact,
     ),
   );
 

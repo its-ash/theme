@@ -34,6 +34,13 @@ Widgets are named `ThemeX` (e.g. `ThemeButton`) to avoid clashing with Flutter's
 - [Layout & misc](#layout--misc)
 - [Typography](#typography)
 - [E-commerce / app widgets](#e-commerce--app-widgets)
+- [State & status widgets](#state--status-widgets)
+- [Form helpers](#form-helpers)
+- [Media & content widgets](#media--content-widgets)
+- [App shell & status pages](#app-shell--status-pages)
+- [Pickers](#pickers)
+- [Commerce & access widgets](#commerce--access-widgets)
+- [Third-party dependencies](#third-party-dependencies)
 
 ---
 
@@ -102,7 +109,7 @@ ThemeToggleButtons({
 ## Cards & surfaces
 
 ### `ThemeCard`
-Elevated container with theme-aware shadow and rounded corners.
+Elevated container with theme-aware shadow and rounded corners. Pass `selected: true` for a selection border that always shares this card's own resolved radius (via `selectedColor`/`selectedBorderWidth`) — draw selection this way rather than wrapping `ThemeCard` in your own bordered `Container`, which can drift out of sync if the radius changes (e.g. via a theme preset).
 ```dart
 ThemeCard({
   required Widget child,
@@ -110,6 +117,9 @@ ThemeCard({
   double borderRadius = 16,
   Clip clipBehavior = Clip.antiAlias,
   EdgeInsetsGeometry margin = const EdgeInsets.all(8),
+  bool selected = false,
+  Color? selectedColor,       // defaults to colorScheme.primary
+  double selectedBorderWidth = 2,
 })
 ```
 
@@ -337,6 +347,7 @@ ThemeSlider({
 ```
 
 ### `ThemeDropdown<T>`
+Compact by default (dense field, 14px text, tight content padding). Menu popup height auto-sizes to the item count (44px/row, capped at 280px) unless you pass `menuHeight`; pass `width` to constrain the field/menu width — otherwise it sizes to the widest entry. Global entry-row padding also comes from the theme's `MenuButtonThemeData` (compact density, shrink-wrapped tap target), so `ThemePopupMenu` and other menu-based widgets are compact too.
 ```dart
 ThemeDropdown<T>({
   required List<DropdownMenuEntry<T>> items,
@@ -344,6 +355,8 @@ ThemeDropdown<T>({
   ValueChanged<T?>? onSelected,
   String? hintText,
   String? label,
+  double? width,
+  double? menuHeight,
 })
 ```
 
@@ -374,6 +387,7 @@ ThemeExpansionTile({
 ```
 
 ### `ThemeDataTable`
+Bordered, rounded container around Material's `DataTable`, with automatic zebra-striping on odd rows (skipped for any `DataRow` that sets its own `color`).
 ```dart
 ThemeDataTable({required List<DataColumn> columns, required List<DataRow> rows})
 ```
@@ -384,8 +398,9 @@ ThemeScrollbar({required Widget child, ScrollController? controller, bool thumbV
 ```
 
 ### `ThemeCarousel`
+Wraps Material's `CarouselView` in a fixed-height `SizedBox` (`height`, default 180) — `CarouselView` has no intrinsic height and disappears inside unbounded-height ancestors (e.g. a `ListView`) without one.
 ```dart
-ThemeCarousel({required List<Widget> children, double itemExtent = 300})
+ThemeCarousel({required List<Widget> children, double itemExtent = 300, double height = 180})
 ```
 
 ---
@@ -543,10 +558,344 @@ ProfileAvatar(radius: 40, initials: 'AR', showEditBadge: true, onTap: () => _edi
 
 ---
 
+## State & status widgets
+
+Common list/screen states (empty, error, loading) and status indicators — near-universal needs across any app screen.
+
+### `ThemeEmptyState`
+Icon + title + optional subtitle + optional CTA, centered — for empty lists/search results.
+```dart
+ThemeEmptyState({
+  required String title,
+  String? subtitle,
+  IconData icon = Icons.inbox_outlined,
+  String? actionLabel,
+  VoidCallback? onAction, // only shown if both actionLabel and onAction are set
+})
+```
+```dart
+ThemeEmptyState(
+  title: 'No orders yet',
+  subtitle: 'Your past orders will show up here.',
+  icon: Icons.receipt_long_outlined,
+  actionLabel: 'Start shopping',
+  onAction: () => Navigator.pushNamed(context, '/shop'),
+)
+```
+
+### `ThemeErrorState`
+Same layout as `ThemeEmptyState`, styled for failures — error-colored icon, retry action.
+```dart
+ThemeErrorState({
+  String title = 'Something went wrong',
+  String? subtitle,
+  IconData icon = Icons.error_outline,
+  String retryLabel = 'Retry',
+  VoidCallback? onRetry, // retry button only shown if set
+})
+```
+
+### `ThemeShimmer` / `ThemeShimmerList`
+Animated skeleton-loading placeholder (sweeping gradient). `ThemeShimmerList` is a preset vertical list of shimmer rows for list-loading states.
+```dart
+ThemeShimmer({double? width, double height = 16, double borderRadius = 8})
+ThemeShimmerList({int itemCount = 6, double itemHeight = 64, double spacing = 12})
+```
+```dart
+isLoading ? const ThemeShimmerList() : ListView(children: items)
+```
+
+### `ThemeStatusPill`
+Small colored status/label pill (order status, tags, etc.) — semantic color by `ThemeStatus`.
+```dart
+ThemeStatusPill({
+  required String label,
+  ThemeStatus status = ThemeStatus.neutral, // success | error | warning | info | neutral
+  IconData? icon,
+})
+```
+```dart
+ThemeStatusPill(label: 'Delivered', status: ThemeStatus.success, icon: Icons.check_circle_outline)
+```
+
+### `ThemeConfirmDialog`
+Confirm/cancel dialog helper — resolves `true` only when the user taps confirm (never on dismiss/cancel).
+```dart
+ThemeConfirmDialog.show(BuildContext context, {
+  required String title,
+  String? content,
+  String confirmLabel = 'Confirm',
+  String cancelLabel = 'Cancel',
+  bool isDestructive = false, // renders confirm label in colorScheme.error
+  bool barrierDismissible = true,
+}) // returns Future<bool>
+```
+```dart
+if (await ThemeConfirmDialog.show(context, title: 'Delete address?', isDestructive: true)) {
+  await deleteAddress(id);
+}
+```
+
+### `ThemeCountdownTimer`
+Self-ticking `mm:ss` (or `hh:mm:ss` past one hour) countdown text, e.g. for OTP resend / flash-sale timers.
+```dart
+ThemeCountdownTimer({
+  required Duration duration,
+  VoidCallback? onFinished,
+  TextStyle? style, // defaults to AppTypography.titleMedium
+})
+```
+
+---
+
+## Form helpers
+
+### `ThemeStatCard`
+Metric tile: label, value, optional leading icon, optional up/down/neutral trend line — for dashboards/profile summaries.
+```dart
+ThemeStatCard({
+  required String label,
+  required String value,
+  IconData? icon,
+  ThemeStatTrend? trend, // up | down | neutral
+  String? trendLabel,    // e.g. '+12% this week' — shown only if trend is also set
+})
+```
+
+### `ThemeStepper`
+Horizontal numbered step indicator (checkoout flows, onboarding, multi-step forms) — no interaction, purely a progress display driven by `currentStep`.
+```dart
+ThemeStepper({required List<String> steps, required int currentStep})
+```
+```dart
+ThemeStepper(steps: ['Cart', 'Address', 'Payment', 'Done'], currentStep: 1)
+```
+
+### `ThemeOtpField`
+Auto-advancing row of single-digit boxes for OTP/verification codes.
+```dart
+ThemeOtpField({
+  int length = 6,
+  ValueChanged<String>? onChanged,   // fires on every digit entered/removed
+  ValueChanged<String>? onCompleted, // fires once when all boxes are filled
+  bool autofocus = true,
+})
+```
+
+### `ThemePasswordField`
+`TextField` with a lock icon and a built-in show/hide toggle — `ThemeTextField`'s `suffixIcon` is static, so this exists as a ready-made stateful password input.
+```dart
+ThemePasswordField({
+  TextEditingController? controller,
+  String? hintText,
+  String? labelText = 'Password',
+  String? errorText,
+  ValueChanged<String>? onChanged,
+  ValueChanged<String>? onSubmitted,
+  bool enabled = true,
+})
+```
+
+### `ThemeLabeledField`
+Generic label (+ optional required `*` marker) + field + helper text wrapper, for building form rows around any input widget (not just `ThemeTextField`).
+```dart
+ThemeLabeledField({
+  required String label,
+  required Widget child,
+  String? helperText,
+  bool required = false,
+})
+```
+```dart
+ThemeLabeledField(
+  label: 'Shipping address',
+  required: true,
+  helperText: 'We deliver to this address by default.',
+  child: ThemeTextField(hintText: '123 Main St'),
+)
+```
+
+---
+
+## Media & content widgets
+
+Pulls in real third-party packages (`video_player`, `file_picker`, `markdown_widget`) rather than stubs — see [Third-party dependencies](#third-party-dependencies) below for what each one adds to a consuming app.
+
+### `ThemeImageViewer`
+Full-screen pinch-to-zoom image viewer (`InteractiveViewer` + black background). Tap to dismiss.
+```dart
+ThemeImageViewer({required Object src, Object? heroTag, double minScale = 1, double maxScale = 4})
+ThemeImageViewer.show(BuildContext context, {required Object src, Object? heroTag}) // pushes it as a route
+```
+`src` accepts the same types as `ThemeLazyImage` (`String` URL/asset path, or `Uint8List`).
+
+### `ThemeGallery`
+Grid of thumbnails (via `ThemeLazyImage`) that opens a swipeable, zoomable full-screen pager on tap, with a Hero transition and a "n / total" counter.
+```dart
+ThemeGallery({required List<Object> sources, int crossAxisCount = 3, double spacing = 4, double borderRadius = 8})
+```
+
+### `ThemeVideoPlayer`
+Wraps `video_player` with themed play/pause + scrubber controls that fade in/out on tap.
+```dart
+ThemeVideoPlayer({
+  required String source,
+  ThemeVideoSourceType sourceType = ThemeVideoSourceType.network, // network | asset | file
+  bool autoPlay = false,
+  bool looping = false,
+  bool showControls = true,
+  double? aspectRatio,   // defaults to the video's native aspect ratio once loaded
+  double borderRadius = 12,
+})
+```
+`sourceType: .file` uses `dart:io`'s `File` — don't use it on web builds.
+
+### `ThemeMarkdown`
+Renders markdown via `markdown_widget`, pre-wired to the current `Theme` (picks light/dark config from `Theme.of(context).brightness`, paragraph/link colors from `colorScheme`).
+```dart
+ThemeMarkdown({
+  required String data,
+  bool selectable = true,
+  bool shrinkWrap = true,
+  ScrollPhysics? physics,
+  EdgeInsetsGeometry? padding,
+})
+```
+
+### `ThemeCodeBlock`
+Monospace code display with an optional language label and copy-to-clipboard button. No syntax highlighting (no highlighter dependency) — use `ThemeMarkdown` with fenced code blocks if you need that.
+```dart
+ThemeCodeBlock({required String code, String? language, bool showCopyButton = true, double borderRadius = 12})
+```
+
+### `ThemeExpandableText`
+Text that truncates past `trimLines` with a "Show more" / "Show less" toggle — only shows the toggle if the text actually overflows.
+```dart
+ThemeExpandableText(
+  String text, {
+  int trimLines = 3,
+  TextStyle? style,
+  String expandLabel = 'Show more',
+  String collapseLabel = 'Show less',
+})
+```
+
+---
+
+## App shell & status pages
+
+### `ThemeSplashScreen`
+Centered logo/app-name/tagline + optional spinner, for a launch screen.
+```dart
+ThemeSplashScreen({
+  Widget? logo,
+  String? appName,
+  String? tagline,
+  bool showProgress = true,
+  Color? backgroundColor,
+})
+```
+
+### `ThemeErrorPage`
+Full-screen 404 / 403 / 500 page via named constructors — each pre-fills a sensible icon, title, subtitle, and action label (all overridable).
+```dart
+ThemeErrorPage.notFound({String? title, String? subtitle, String? actionLabel, VoidCallback? onAction})
+ThemeErrorPage.forbidden({String? title, String? subtitle, String? actionLabel, VoidCallback? onAction})
+ThemeErrorPage.serverError({String? title, String? subtitle, String? actionLabel, VoidCallback? onAction})
+```
+```dart
+ThemeErrorPage.notFound(onAction: () => Navigator.of(context).pushReplacementNamed('/'))
+```
+
+### `ThemeAppDialog`
+Generic dialog shell for arbitrary widget content — `ThemeDialog` only takes a `String? content`; use this when the body needs real widgets (a form, a list, custom layout).
+```dart
+ThemeAppDialog.show<T>(BuildContext context, {
+  String? title,
+  required Widget content,
+  List<Widget>? actions,
+  bool barrierDismissible = true,
+  double? maxWidth, // defaults to 480
+}) // returns Future<T?>
+```
+
+---
+
+## Pickers
+
+### `ThemeIconPicker`
+Grid of `IconData` to choose from, with a selected-state outline.
+```dart
+ThemeIconPicker({required List<IconData> icons, IconData? selected, ValueChanged<IconData>? onSelected, int crossAxisCount = 6, double iconSize = 22})
+ThemeIconPicker.show(BuildContext context, {required List<IconData> icons, IconData? selected}) // returns Future<IconData?>, opens as a bottom sheet
+```
+
+### `ThemeEmojiPicker`
+Grid-based emoji picker. Bring your own emoji list (this package doesn't bundle an emoji dataset) — group them by category upstream and render one picker per category/tab if needed.
+```dart
+ThemeEmojiPicker({required List<String> emojis, ValueChanged<String>? onSelected, int crossAxisCount = 8, double emojiSize = 24})
+ThemeEmojiPicker.show(BuildContext context, {required List<String> emojis}) // returns Future<String?>, opens as a bottom sheet
+```
+
+### `ThemeColorPicker`
+Row/wrap of color swatches with a checkmark on the selected one (auto-contrasted black/white check).
+```dart
+ThemeColorPicker({required List<Color> colors, Color? selected, ValueChanged<Color>? onSelected, double swatchSize = 36, double spacing = 10})
+```
+
+### `ThemeFileUploader`
+Dashed drop-zone-style picker button (wraps `file_picker`) with a picked-files list (name + remove button) below it.
+```dart
+ThemeFileUploader({
+  ValueChanged<List<PlatformFile>>? onFilesPicked,
+  bool allowMultiple = false,
+  FileType type = FileType.any, // from file_picker
+  List<String>? allowedExtensions,
+  String label = 'Choose file',
+  String hint = 'or drag and drop',
+})
+```
+
+---
+
+## Commerce & access widgets
+
+### `ThemeDiscountBadge`
+Small "-N%" pill, e.g. on a product card.
+```dart
+ThemeDiscountBadge({required int percentOff, Color? color}) // color defaults to colorScheme.error
+```
+
+### `ThemeWishlistButton`
+Animated heart toggle (outline ↔ filled) with a scale transition.
+```dart
+ThemeWishlistButton({required bool isWishlisted, ValueChanged<bool>? onChanged, double size = 24, Color? filledColor})
+```
+
+### `ThemePermissionSelector`
+List of togglable permissions/roles/feature-flags, each a switch row with optional icon and description.
+```dart
+ThemePermission({required String id, required String label, String? description, IconData? icon})
+
+ThemePermissionSelector({
+  required List<ThemePermission> permissions,
+  required Set<String> selectedIds,
+  ValueChanged<Set<String>>? onChanged,
+})
+```
+
+---
+
+## Third-party dependencies
+
+Beyond `google_fonts`, this package depends on `video_player` (`ThemeVideoPlayer`), `file_picker` (`ThemeFileUploader`), and `markdown_widget` (`ThemeMarkdown`). These pull in native platform code (iOS/Android/desktop plugin implementations) — every consuming app inherits that footprint even if it never uses those three widgets, since Dart/Flutter has no per-widget tree-shaking of native plugin registration. If binary size or platform-permission surface matters for your app, keep this in mind when upgrading the package.
+
+---
+
 ## Colors & shadows (advanced / theming internals)
 
-- `AppColors` — static light/dark palette constants and `lightColorScheme` / `darkColorScheme` getters. Pass a derived `ColorScheme` into `AppTheme.lightTheme(colorScheme: ...)` to rebrand.
-- `AppShadowTheme` — a `ThemeExtension` holding named `BoxShadow` lists (`shadowOne`, `cardShadow`, etc.), retrieved via `Theme.of(context).extension<AppShadowTheme>()`. `ThemeCard` uses this automatically.
+- `AppColors` — static light/dark palette constants and `lightColorScheme` / `darkColorScheme` getters. Pass a derived `ColorScheme` into `AppTheme.lightTheme(colorScheme: ...)` to rebrand. Defines full container roles (`primaryContainer`/`onPrimaryContainer`, `secondaryContainer`/`onSecondaryContainer`, `errorContainer`/`onErrorContainer`, `surfaceContainer(Low/High)`, `inverseSurface`/`onInverseSurface`) — not just the base `primary`/`secondary`/`surface`/`error` — so any widget that reads a container role from `ColorScheme` gets a color coherent with your brand instead of Flutter's unrelated hardcoded defaults.
+- `AppShadowTheme` — a `ThemeExtension` holding named `BoxShadow` values (`shadowOne`, `cardShadow`, etc.), retrieved via `Theme.of(context).extension<AppShadowTheme>()`. `ThemeCard` uses this automatically. `AppShadowTheme()` (default) is tuned for light backgrounds; `AppShadowTheme.dark()` uses higher-opacity, larger-blur shadows so elevation stays visible against near-black surfaces — `AppTheme.darkTheme()` uses `AppShadowTheme.dark()` by default. Cards, menus, and dropdowns also lift onto a `surfaceContainer`-toned background in dark mode so elevation reads from surface tint as well as shadow, matching Material 3 dark-theme conventions.
 - The `*_theme.dart` files under `lib/src/components/` (`button_theme.dart`, `card_theme.dart`, `app_bar_theme.dart`, etc.) are internal `ThemeData` factory builders consumed by `AppTheme` — you should not need to call them directly; override via `AppTheme.lightTheme(colorScheme:, textTheme:, shadows:)` instead.
 
 ---
@@ -558,3 +907,338 @@ ProfileAvatar(radius: 40, initials: 'AR', showEditBadge: true, onTap: () => _edi
 - Name widgets `ThemeX` for theme-plumbing wrappers, or a plain descriptive name (e.g. `AddToCartButton`, `ProfileAvatar`) for higher-level opinionated components.
 - Prefer configurable enums/params with sensible defaults over hardcoded behavior, so callers can override without forking the widget.
 - Update this file when adding, renaming, or changing the public API of a widget.
+
+---
+
+## New widgets
+
+### `ThemeLazyImage`
+Fade-in image with placeholder and error fallback. Accepts a network URL string, an asset path string, or `Uint8List` bytes. Respects `cacheWidth`/`cacheHeight` via `ResizeImage` for memory efficiency.
+```dart
+ThemeLazyImage({
+  required Object src, // String (http/asset) or Uint8List
+  double? width,
+  double? height,
+  BoxFit fit = BoxFit.cover,
+  Widget? placeholder,
+  Widget? errorWidget,
+  double borderRadius = 12,
+  int? cacheWidth,
+  int? cacheHeight,
+  Duration fadeDuration = const Duration(milliseconds: 300),
+})
+```
+
+### `ThemeSpinner`
+Six custom-painted spinner types: `ripple`, `wave`, `dots`, `pulse`, `bars`, `dualRing`.
+```dart
+ThemeSpinner({
+  ThemeSpinnerType type = ThemeSpinnerType.ripple,
+  double size = 36,
+  Color? color,
+  double strokeWidth = 3,
+  Duration duration = const Duration(milliseconds: 1000),
+})
+```
+
+### `ThemeSkeleton` / `ThemeSkeletonLoader`
+Loading skeletons built on `ThemeShimmer`. `ThemeSkeletonType`: `textLine`, `circleAvatar`, `card`, `listTile`, `gridTile`, `banner`, `paragraph`.
+```dart
+ThemeSkeleton({ThemeSkeletonType type, double? width, double? height, double borderRadius = 8})
+ThemeSkeletonLoader({ThemeSkeletonType type = ThemeSkeletonType.listTile, int count = 6, double spacing = 12})
+```
+
+### `ThemeSearchableDropdown<T>`
+Dropdown with an overlay search field. Generic over item type `T`; `itemLabel` extracts display text.
+```dart
+ThemeSearchableDropdown<T>({
+  required List<T> items,
+  String? label,
+  String? hint,
+  T? value,
+  ValueChanged<T?>? onChanged,
+  String Function(T) itemLabel, // default: toString()
+  Widget Function(T)? itemLeading,
+  double maxHeight = 320,
+  bool enabled = true,
+})
+```
+
+### `ThemeOtpInput`
+OTP input with configurable box shape (`circle`/`rectangle`), paste support, and obscure mode.
+```dart
+ThemeOtpInput({
+  int length = 6,
+  ValueChanged<String>? onChanged,
+  ValueChanged<String>? onCompleted,
+  bool autofocus = true,
+  BoxShape boxShape = BoxShape.circle,
+  double boxSize = 52,
+  double spacing = 10,
+  bool obscure = false,
+  TextInputType keyboardType = TextInputType.number,
+})
+```
+
+### `ThemeAppPasswordField`
+Password field with show/hide toggle and optional 4-segment strength indicator (`weak`/`fair`/`good`/`strong`).
+```dart
+ThemeAppPasswordField({
+  TextEditingController? controller,
+  String? hintText,
+  String labelText = 'Password',
+  String? errorText,
+  ValueChanged<String>? onChanged,
+  ValueChanged<String>? onSubmitted,
+  bool enabled = true,
+  bool showStrengthIndicator = false,
+})
+```
+
+### `ThemeAccordion` / `ThemeAccordionList` / `ThemeAccordionItem`
+Animated expand/collapse section with rotation indicator. `ThemeAccordionList` renders multiple items.
+```dart
+ThemeAccordion({
+  required Widget title,
+  required List<Widget> children,
+  Widget? leading,
+  Widget? trailing,
+  bool initiallyExpanded = false,
+  IconData? expandIcon,
+})
+ThemeAccordionItem({required Widget title, required List<Widget> children, Widget? leading, Widget? trailing})
+ThemeAccordionList({required List<ThemeAccordionItem> items, int? initiallyExpandedIndex})
+```
+
+### `ThemePullToRefresh`
+Themed `RefreshIndicator` wrapper.
+```dart
+ThemePullToRefresh({
+  required Widget child,
+  Future<void> Function()? onRefresh,
+  double displacement = 40,
+  ThemeSpinnerType refreshIndicatorType = ThemeSpinnerType.ripple,
+})
+```
+
+### `ThemeDraggableList<T>`
+Reorderable list with drag handle, proxy elevation, and custom leading/trailing builders.
+```dart
+ThemeDraggableList<T>({
+  required List<T> items,
+  required Widget Function(BuildContext, T, int) itemBuilder,
+  ValueChanged<List<T>>? onReorder,
+  Widget Function(BuildContext, T, int)? leading,
+  Widget Function(BuildContext, T, int)? trailing,
+  double spacing = 8,
+})
+```
+
+### `ThemeAppDataTable`
+Sortable, striped, paginated data table with optional checkbox selection. Uses `ThemeDataColumn` for column config.
+```dart
+ThemeAppDataTable({
+  required List<ThemeDataColumn> columns,
+  required List<List<Widget>> rows,
+  ValueChanged<int>? onRowTap,
+  void Function(int columnIndex, bool ascending)? onSort,
+  bool stripeRows = true,
+  bool showCheckboxColumn = false,
+  ValueChanged<Set<int>>? onSelectionChanged,
+  int? pageSize,
+  Widget? header,
+})
+ThemeDataColumn({required Widget label, bool numeric = false, bool sortable = false})
+```
+
+### `ThemeAppConfirmDialog`
+Confirm dialog with optional leading icon; `isDestructive` colors the confirm button with `colorScheme.error`.
+```dart
+ThemeAppConfirmDialog.show(BuildContext context, {
+  required String title,
+  String? content,
+  String confirmLabel = 'Confirm',
+  String cancelLabel = 'Cancel',
+  bool isDestructive = false,
+  bool barrierDismissible = true,
+  IconData? icon,
+}) // returns Future<bool>
+```
+
+### `ThemeNotificationCard`
+In-app notification card with typed color/icon (`info`/`success`/`warning`/`error`/`default_`), timestamp, actions, and dismiss button.
+```dart
+ThemeNotificationCard({
+  required String title,
+  String? message,
+  ThemeNotificationType type = ThemeNotificationType.default_,
+  Widget? leading,
+  List<Widget> actions = const [],
+  VoidCallback? onDismiss,
+  String? timestamp,
+  EdgeInsetsGeometry margin = const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+})
+```
+
+### `ThemePushNotification`
+OS-style push notification card. Styles: `basic`, `bigText`, `bigImage`, `inbox`, `media`, `progress`.
+```dart
+ThemePushNotification({
+  required String title,
+  String? body,
+  ThemePushNotificationStyle style = ThemePushNotificationStyle.basic,
+  ImageProvider? imageProvider,
+  List<String> lines = const [],
+  double? progress,
+  String? timestamp,
+  String appName = 'App',
+  Widget appIcon = const Icon(Icons.notifications, size: 14),
+  VoidCallback? onTap,
+})
+```
+
+### `ThemeCommandPalette` / `ThemeCommand`
+VS Code / Spotlight-style command palette dialog with fuzzy search, keyboard selection, shortcuts, and tags.
+```dart
+ThemeCommandPalette.show(BuildContext context, {
+  List<ThemeCommand> commands = const [],
+  String placeholder = 'Search commands...',
+}) // returns Future<ThemeCommand?>
+
+ThemeCommand({
+  required String id,
+  required String label,
+  String? description,
+  IconData? icon,
+  String? shortcut,
+  List<String>? tags,
+  VoidCallback? run,
+})
+```
+
+### `ThemeStyleSwitcher`
+Visual horizontal-scroll grid of theme-style preview cards. Each card is painted from the style's own `ColorScheme` and `AppShadowTheme`, so the user sees a faithful miniature of the theme before selecting it. Tap a card to switch the entire app theme live.
+```dart
+ThemeStyleSwitcher({
+  List<AppThemeStyle>? styles, // defaults to AppThemeStyle.all
+  String selectedId = 'light',
+  ValueChanged<String>? onSelected,
+  Brightness brightness = Brightness.light, // which variant to preview
+  double cardWidth = 140,
+  double cardHeight = 96,
+  double spacing = 12,
+  bool showLabels = true,
+})
+```
+```dart
+ThemeStyleSwitcher(
+  selectedId: controller.value.styleId,
+  onSelected: controller.setStyle,
+)
+```
+
+---
+
+## Theme presets
+
+`AppThemePreset` bundles a complete theme (color scheme, shadows, shape radii, typography) into one switchable object. Call `.toThemeData()` to get a `ThemeData` you can pass to `MaterialApp`.
+
+### Usage
+```dart
+MaterialApp(
+  theme: LightPresets.neumorphism.toThemeData(),
+  darkTheme: DarkPresets.darkHighContrast.toThemeData(),
+  themeMode: ThemeMode.system,
+)
+```
+Switching a preset overwrites every shadow, color, and radius in one call — no per-widget rewiring.
+
+### `LightPresets` (18 presets)
+`default`, `flat`, `material`, `neumorphism`, `glassmorphism`, `brutalism`, `maximalism`, `skeuomorphism`, `skeuominimalism`, `retro8bit`, `cyberpunk`, `claymorphism`, `bauhaus`, `organic`, `typographic`, `minimalismMono`, `papercut`, `skeuomorphismClassic`.
+
+`LightPresets.all` — full `List<AppThemePreset>`.
+`LightPresets.byId(String id)` — lookup by preset `id`.
+
+### `DarkPresets`
+`default`, `darkHighContrast` (`id: 'dark-highcontrast'`).
+
+`DarkPresets.all` / `DarkPresets.byId(String id)`.
+
+### `AppThemePreset` fields
+```dart
+AppThemePreset({
+  required String id,
+  required String name,
+  required Brightness brightness,
+  required ColorScheme colorScheme,
+  required AppShadowTheme shadows,
+  TextTheme? textTheme,
+  double cardRadius = 16,
+  double buttonRadius = 12,
+  double inputRadius = 12,
+  double dialogRadius = 16,
+  bool useMaterial3 = true,
+})
+```
+
+---
+
+## Theme styles (light + dark pairs)
+
+`AppThemeStyle` pairs a light and dark `AppThemePreset` under a single named style. Each of the 20 styles below exposes `.themeData(Brightness)` so you can pass both a `theme` and `darkTheme` from one selection — switching a style overwrites every shadow, color, and radius for both modes at once.
+
+### Usage
+```dart
+final style = AppThemeStyle.byId('neumorphism');
+
+MaterialApp(
+  theme: style.themeData(Brightness.light),
+  darkTheme: style.themeData(Brightness.dark),
+  themeMode: ThemeMode.system,
+)
+```
+
+### Available styles (`AppThemeStyle.all`)
+| id | name |
+|---|---|
+| `light` | Light |
+| `dark` | Dark |
+| `flat` | Flat |
+| `material` | Material |
+| `neumorphism` | Neumorphism |
+| `glassmorphism` | Glassmorphism |
+| `brutalism` | Brutalism |
+| `maximalism` | Maximalism |
+| `skeuomorphism` | Skeuomorphism |
+| `skeuominimalism` | Skeuominimalism |
+| `dark-highcontrast` | Dark High Contrast |
+| `retro-8bit` | Retro 8-bit |
+| `cyberpunk` | Cyberpunk |
+| `claymorphism` | Claymorphism |
+| `bauhaus` | Bauhaus |
+| `organic` | Organic |
+| `typographic` | Typographic |
+| `minimalism-mono` | Minimalism Mono |
+| `papercut` | Papercut |
+| `skeuomorphism-classic` | Skeuomorphism Classic |
+
+### `AppThemeStyle` API
+```dart
+AppThemeStyle({
+  required String id,
+  required String name,
+  required AppThemePreset lightPreset,
+  required AppThemePreset darkPreset,
+})
+
+// pick the preset for a brightness
+AppThemePreset preset(Brightness brightness)
+// build ThemeData for a brightness
+ThemeData themeData(Brightness brightness)
+
+AppThemeStyle.all          // List<AppThemeStyle> (20)
+AppThemeStyle.byId(String) // lookup by id, falls back to 'light'
+```
+
+### Static constants
+Each style is also available as a named constant: `AppThemeStyle.light`, `.dark`, `.flat`, `.material`, `.neumorphism`, `.glassmorphism`, `.brutalism`, `.maximalism`, `.skeuomorphism`, `.skeuominimalism`, `.darkHighContrast`, `.retro8bit`, `.cyberpunk`, `.claymorphism`, `.bauhaus`, `.organic`, `.typographic`, `.minimalismMono`, `.papercut`, `.skeuomorphismClassic`.
