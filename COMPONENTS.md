@@ -913,7 +913,7 @@ Beyond `google_fonts`, this package depends on `video_player` (`ThemeVideoPlayer
 ## New widgets
 
 ### `ThemeLazyImage`
-Fade-in image with placeholder and error fallback. Accepts a network URL string, an asset path string, or `Uint8List` bytes. Respects `cacheWidth`/`cacheHeight` via `ResizeImage` for memory efficiency.
+Fade-in image with placeholder and error fallback. Accepts a network URL string, an asset path string, or `Uint8List` bytes. Respects `cacheWidth`/`cacheHeight` via `ResizeImage` for memory efficiency. If both `width` and `height` are omitted, it sizes to the decoded image's own intrinsic pixel size instead of filling its parent — useful inside a `FittedBox`/`ConstrainedBox` combo (see `ThemeImageViewer`/`ThemeGallery`'s zoom viewers) where you want it measured at its natural aspect ratio rather than stretched.
 ```dart
 ThemeLazyImage({
   required Object src, // String (http/asset) or Uint8List

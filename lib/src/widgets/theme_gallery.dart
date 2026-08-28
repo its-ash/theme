@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:theme/src/widgets/theme_lazy_image.dart';
+import 'package:theme/src/widgets/theme_zoomable_image.dart';
 
 class ThemeGallery extends StatelessWidget {
   const ThemeGallery({
@@ -99,27 +100,7 @@ class _ThemeGalleryPagerState extends State<_ThemeGalleryPager> {
         itemBuilder: (context, i) {
           return Hero(
             tag: '${widget.tagPrefix}-$i',
-            // ThemeLazyImage sizes itself from width/height rather than
-            // filling its parent, so it needs the page's own bounds
-            // explicitly — otherwise it collapses to a tiny box that
-            // InteractiveViewer/Center just anchor top-left.
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return InteractiveViewer(
-                  minScale: 1,
-                  maxScale: 4,
-                  child: Center(
-                    child: ThemeLazyImage(
-                      src: widget.sources[i],
-                      fit: BoxFit.contain,
-                      borderRadius: 0,
-                      width: constraints.maxWidth,
-                      height: constraints.maxHeight,
-                    ),
-                  ),
-                );
-              },
-            ),
+            child: ThemeZoomableImage(src: widget.sources[i]),
           );
         },
       ),

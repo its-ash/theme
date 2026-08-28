@@ -83,45 +83,48 @@ class _ThemeLazyImageState extends State<ThemeLazyImage>
           );
     }
 
+    final image = Image(
+      image: _provider(),
+      width: widget.width,
+      height: widget.height,
+      fit: widget.fit,
+      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+        // `child` (the actual RawImage) must always stay in the tree —
+        // swapping it out for an unrelated widget while frame == null tears
+        // down its element and breaks the decode-listener lifecycle, so
+        // only ever change how it's wrapped, never whether it's present.
+        if (wasSynchronouslyLoaded || frame != null) {
+          if (!_loaded) {
+            _loaded = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _fade.forward();
+            });
+          }
+          return FadeTransition(opacity: _fade, child: child);
+        }
+        // Still decoding the first frame. With an explicit width/height we
+        // can overlay a properly-sized placeholder; without one there's
+        // nothing to size it to, so just hide the (zero-sized) child until
+        // its natural size is known.
+        return widget.width == null && widget.height == null
+            ? Visibility(visible: false, maintainState: true, maintainAnimation: true, maintainSize: true, child: child)
+            : Stack(fit: StackFit.passthrough, children: [placeholder, Opacity(opacity: 0, child: child)]);
+      },
+      errorBuilder: (_, __, ___) {
+        if (!_errored) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) setState(() => _errored = true);
+          });
+        }
+        return const SizedBox.shrink();
+      },
+    );
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(widget.borderRadius),
-      child: SizedBox(
-        width: widget.width,
-        height: widget.height,
-        child: Stack(
-          fit: StackFit.passthrough,
-          children: [
-            if (!_loaded) placeholder,
-            FadeTransition(
-              opacity: _fade,
-              child: Image(
-                image: _provider(),
-                width: widget.width,
-                height: widget.height,
-                fit: widget.fit,
-                loadingBuilder: (context, child, progress) {
-                  if (progress == null) {
-                    if (!_loaded) {
-                      _loaded = true;
-                      _fade.forward();
-                    }
-                    return child;
-                  }
-                  return placeholder;
-                },
-                errorBuilder: (_, __, ___) {
-                  if (!_errored) {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (mounted) setState(() => _errored = true);
-                    });
-                  }
-                  return const SizedBox.shrink();
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
+      child: widget.width == null && widget.height == null
+          ? image
+          : SizedBox(width: widget.width, height: widget.height, child: image),
     );
   }
 }

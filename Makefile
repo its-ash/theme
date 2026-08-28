@@ -1,23 +1,34 @@
 DEVICE := iPhone 17
 
-.PHONY: run run-macos build-macos deploy docs commit
+.PHONY: run run-macos build-macos deploy docs commit check-assets
 
-run:
+# example/assets/README.md is a symlink to the root README.md (kept in sync
+# for free). On a checkout/export that doesn't preserve symlinks (some CI
+# runners, zip exports, Windows without dev mode) it materializes empty or
+# broken, and the app's Home section would silently show an error instead
+# of the README — fail the build loudly here instead.
+check-assets:
+	@test -s example/assets/README.md || { \
+		echo "error: example/assets/README.md is empty or missing (symlink to ../../README.md not preserved by this checkout)"; \
+		exit 1; \
+	}
+
+run: check-assets
 	xcrun simctl boot "$(DEVICE)" 2>/dev/null || true
 	open -a Simulator
 	until xcrun simctl list devices booted | grep -q "$(DEVICE)"; do sleep 1; done
 	cd example && flutter pub get && flutter run -d "$(DEVICE)"
 
-run-macos:
+run-macos: check-assets
 	cd example && flutter pub get && flutter run -d macos
 
-build-macos:
+build-macos: check-assets
 	cd example && flutter pub get && flutter build macos --release
 
 deploy: docs commit
 	git push
 
-docs:
+docs: check-assets
 	cd example && flutter pub get && flutter build web --base-href / --release --no-tree-shake-icons
 	find docs -mindepth 1 -not -name CNAME -delete
 	cp -R example/build/web/. docs/
